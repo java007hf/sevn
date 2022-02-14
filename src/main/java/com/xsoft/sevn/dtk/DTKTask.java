@@ -24,7 +24,7 @@ public class DTKTask {
             Thread.currentThread().setName("DTKCrawlerThread");
 
             LOGGER.info ("----crawl begin----");
-            dtkDateRequest.requestJson();
+            dtkDateRequest.requestJson(1);
         }, 0, 10, TimeUnit.MINUTES);
     }
 }
