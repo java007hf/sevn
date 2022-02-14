@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class ZhihuTask {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZhihuPipeline.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZhihuTask.class);
 
     @Autowired
     private ZhihuPipeline zhihuPipeline;

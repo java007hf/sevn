@@ -31,8 +31,8 @@ public class ZhihuPipeline implements Pipeline {
 
         try {
             LOGGER.info("保存知乎文章成功：tile = " + title + " , answer = " + answer);
-            cmsContentMapper.insert (UUID.randomUUID().toString(),
-                    title, answer, new Date ());
+//            cmsContentMapper.insert (UUID.randomUUID().toString(),
+//                    title, answer, new Date ());
         } catch (Exception ex) {
             LOGGER.error("保存知乎文章失败", ex);
         }
