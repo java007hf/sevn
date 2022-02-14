@@ -14,7 +14,7 @@ public class ZhihuPageProcessor implements PageProcessor {
 
     @Override
     public void process(Page page) {
-//        LOGGER.info ("----crawl begin---- page = " + page.getHtml().links().all());
+//        LOGGER.info ("----crawl begin---- page = " + page.getHtml());
 
         page.addTargetRequests(page.getHtml().links().regex("https://www\\.zhihu\\.com/question/\\d+").all());
         page.putField("title", page.getHtml().xpath("//h1[@class='QuestionHeader-title']/text()").toString());
