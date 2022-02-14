@@ -2,7 +2,6 @@ package com.xsoft.sevn.webmagic;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
