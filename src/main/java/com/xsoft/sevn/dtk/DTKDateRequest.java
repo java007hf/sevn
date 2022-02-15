@@ -1,6 +1,7 @@
 package com.xsoft.sevn.dtk;
 
 import com.xsoft.sevn.utils.GetJson;
+import com.xsoft.sevn.utils.GetRenderDoc;
 import com.xsoft.sevn.utils.URLSet;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -12,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
 
 @Component
 public class DTKDateRequest {
@@ -106,9 +109,12 @@ public class DTKDateRequest {
         String shortLink = stock.getJSONObject("data").getString("shortLink");
 
         try {
-            Document doc = Jsoup.connect(shortLink).followRedirects(true).execute().parse();
+            URL redirectsURL = Jsoup.connect(shortLink).followRedirects(true).execute().url();
 
             LOGGER.info("shortLink shortLink = " + shortLink);
+            LOGGER.info("shortLink redirectsURL = " + redirectsURL);
+
+            Document doc = new GetRenderDoc().getDocument(redirectsURL.toString());
             LOGGER.info("shortLink doc = " + doc);
         } catch (IOException e) {
             e.printStackTrace();
