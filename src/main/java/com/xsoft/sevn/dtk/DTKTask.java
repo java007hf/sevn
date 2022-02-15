@@ -24,7 +24,7 @@ public class DTKTask {
 
             LOGGER.info ("----crawl begin----");
             dtkDateRequest.cleanData();
-            dtkDateRequest.requestJson(1, 57476);
+            dtkDateRequest.requestJson(1);
         }, 0, 10, TimeUnit.MINUTES);
     }
 }

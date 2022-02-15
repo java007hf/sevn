@@ -12,8 +12,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class DTKDateRequest {
     private static final Logger LOGGER = LoggerFactory.getLogger(DTKDateRequest.class);
-//    private String URL = "https://dtkapi.ffquan.cn/go_getway/proxy/search?platform=1&page=1&px=zh&sortType=1&zsUid=57476&tmcs=1&version=1&api_v=1&flow_identifier=normal";
-    private String URL = "https://dtkapi.ffquan.cn/go_getway/proxy/search?platform=1&page=1&px=zh&sortType=1&zsUid=57476&tmcs=1&version=1&api_v=1&flow_identifier=normal&shop=1";
+
+//    天猫超市
+//    private String URL = "https://dtkapi.ffquan.cn/go_getway/proxy/search-v2?platform=1&page=1&px=zh&shop=2&version=2&api_v=1&flow_identifier=normal";
+
+    //天猫
+    private String URL = "https://dtkapi.ffquan.cn/go_getway/proxy/search-v2?platform=1&page=1&px=zh&tmall=1&version=2&api_v=1&flow_identifier=normal";
 
     @Autowired
     private CommoditMapper commoditMapper;
@@ -22,16 +26,15 @@ public class DTKDateRequest {
         commoditMapper.cleanData();
     }
 
-    public void requestJson(int index, int zsUID) {
-        String addIndexURL = URLSet.replaceAccessTokenReg(URL, "page", index + "");
-        String requestURL = URLSet.replaceAccessTokenReg(addIndexURL, "zsUid", zsUID + "");
+    public void requestJson(int index) {
+        String requestURL = URLSet.replaceAccessTokenReg(URL, "page", index + "");
 
         LOGGER.info("requestURL = " + requestURL);
         JSONObject stock = new GetJson().getHttpJson(requestURL,1);
-        process(stock, index, zsUID);
+        process(stock, index);
     }
 
-    private void process(JSONObject stock, int currentIndex, int zsUID) {
+    private void process(JSONObject stock, int currentIndex) {
         JSONObject searchData = stock.getJSONObject("data").getJSONObject("search");
         int totalSize = searchData.getInt("total");
         int pageSize = totalSize/100;
@@ -73,12 +76,13 @@ public class DTKDateRequest {
         }
 
         if (pageSize > currentIndex) {
-            requestJson(currentIndex+1, zsUID);
+            requestJson(currentIndex+1);
         }
     }
 
+    int i = 0;
     private void saveDB(Commodit commodit) {
-        LOGGER.info("commodit = " + commodit);
         commoditMapper.insert (commodit);
+        LOGGER.info((i++) + " commodit = " + commodit);
     }
 }
