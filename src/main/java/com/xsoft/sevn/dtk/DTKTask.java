@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import us.codecraft.webmagic.Spider;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,7 +23,7 @@ public class DTKTask {
             Thread.currentThread().setName("DTKCrawlerThread");
 
             LOGGER.info ("----crawl begin----");
-            dtkDateRequest.requestJson(1);
+            dtkDateRequest.requestJson(1, 57476);
         }, 0, 10, TimeUnit.MINUTES);
     }
 }
