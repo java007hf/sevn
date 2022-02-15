@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class DTKTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(DTKTask.class);
     private ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor();
+    private static final String Token = "K8dB7HRsOIHPyaYjkwoLGTSH0_zKZnl6P6rbRgsJZxq13Iy66y1V5bjLitRpBkLsNs-X9PJy3z-GNIyvofpw1A";
 
     @Autowired
     private DTKDateRequest dtkDateRequest;
@@ -23,6 +24,7 @@ public class DTKTask {
             Thread.currentThread().setName("DTKCrawlerThread");
 
             LOGGER.info ("----crawl begin----");
+            dtkDateRequest.setToken(Token);
             dtkDateRequest.cleanData();
             dtkDateRequest.requestJson(1);
         }, 0, 10, TimeUnit.MINUTES);
