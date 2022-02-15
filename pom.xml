@@ -86,7 +86,14 @@
 		<dependency>
 			<groupId>io.webfolder</groupId>
 			<artifactId>cdp4j</artifactId>
-			<version>2.2.1</version>
+			<version>3.0.12</version>
+		</dependency>
+		<!-- 2.2.1 版本的cdp4j不用导入winp；3.0+ 版本的cdp4j需要导入此包 -->
+		<!-- https://mvnrepository.com/artifact/org.jvnet.winp/winp -->
+		<dependency>
+			<groupId>org.jvnet.winp</groupId>
+			<artifactId>winp</artifactId>
+			<version>1.28</version>
 		</dependency>
 	</dependencies>
 
