@@ -23,6 +23,11 @@ public class Commodit {
     String shop_name; //商店名称
     float commission; //佣金计算
 
+    String dtkCommoditURL; //大淘客原始URL
+    String shortLink; //从大淘客获取的短链
+    String redirectsURL; //最终跳转的长链
+    String taobaoCommoditURL; //长链里获取的阿里购物链接
+
     @Override
     public String toString () {
         return "Commodit{" +
@@ -47,6 +52,10 @@ public class Commodit {
                 ", price='" + price + '\'' +
                 ", shop_name='" + shop_name + '\'' +
                 ", commission='" + commission + '\'' +
+                ", dtkCommoditURL='" + dtkCommoditURL + '\'' +
+                ", shortLink='" + shortLink + '\'' +
+                ", redirectsURL='" + redirectsURL + '\'' +
+                ", taobaoCommoditURL='" + taobaoCommoditURL + '\'' +
                 '}';
     }
 }

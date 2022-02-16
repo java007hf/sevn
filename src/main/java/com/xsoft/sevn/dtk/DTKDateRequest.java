@@ -7,6 +7,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,7 @@ public class DTKDateRequest {
     private String DTK_List_URL = "https://dtkapi.ffquan.cn/go_getway/proxy/search-v2?platform=1&page=1&px=zh&tmall=1&version=2&api_v=1&flow_identifier=normal";
     //DTK推荐页面
     private static final String DTK_Item_URL = "https://dtkapi.ffquan.cn/taobaoapi/tpl-tpwd?gid=37259812&location=1&referer=&need_fav=-1&jaw_uid=K8dB7HRsOIHPyaYjkwoLGTSH0_zKZnl6P6rbRgsJZxq13Iy66y1V5bjLitRpBkLsNs-X9PJy3z-GNIyvofpw1A";
+    private int mParseIndex = 0;
 
     @Autowired
     private CommoditMapper commoditMapper;
@@ -35,6 +38,7 @@ public class DTKDateRequest {
         mToken = token;
         mGetRenderDoc = new GetRenderDoc();
         mGetRenderDoc.initWebfolder ();
+        mParseIndex = 0;
     }
 
     public void cleanData() {
@@ -49,7 +53,7 @@ public class DTKDateRequest {
         process(stock, index);
     }
 
-    private void process(JSONObject stock, int currentIndex) {
+    private void process(JSONObject stock, int currentPage) {
         JSONObject searchData = stock.getJSONObject("data").getJSONObject("search");
         int totalSize = searchData.getInt("total");
         int pageSize = totalSize/100;
@@ -59,9 +63,11 @@ public class DTKDateRequest {
 
         LOGGER.info("totalSize = " + totalSize);
         LOGGER.info("pageSize = " + pageSize);
-        LOGGER.info("currentIndex = " + currentIndex);
+        LOGGER.info("currentPage = " + currentPage);
 
         for (int i=0; i<listArray.length (); i++) {
+            mParseIndex++;
+            LOGGER.info("=====current Index==== " + mParseIndex);
             JSONObject commoditJSON = listArray.getJSONObject (i);
 
             Commodit commodit = new Commodit ();
@@ -75,8 +81,8 @@ public class DTKDateRequest {
             saveDB(commodit);
         }
 
-        if (pageSize > currentIndex) {
-            requestJson(currentIndex+1);
+        if (pageSize > currentPage) {
+            requestJson(currentPage+1);
         }
     }
 
@@ -110,35 +116,49 @@ public class DTKDateRequest {
         JSONObject stock = new GetJson().getHttpJson(addToken_URL,1);
         String shortLink = stock.getJSONObject("data").getString("shortLink");
 
+        commodit.dtkCommoditURL = addCommoditID_URL;
+        commodit.shortLink = shortLink;
+
         try {
             URL redirectsURL = Jsoup.connect(shortLink).followRedirects(true).execute().url();
+            commodit.redirectsURL = redirectsURL.toString();
 
-            LOGGER.info("shortLink shortLink = " + shortLink);
-            LOGGER.info("shortLink redirectsURL = " + redirectsURL);
+            LOGGER.info("parseContenteditable shortLink = " + shortLink);
+            LOGGER.info("parseContenteditable redirectsURL = " + redirectsURL);
 
             //渲染后的数据
-//            Document doc = mGetRenderDoc.getDocument(redirectsURL.toString());
+            Document doc = mGetRenderDoc.getDocument(redirectsURL.toString());
 
-            //静态页面不能获取最终的数据
-//            Document doc = Jsoup.connect(redirectsURL.toString ()).followRedirects(true).execute().parse ();
+            Elements elements = doc.getElementsByClass("item-info-con");
+            if (elements.size() <= 0) {
+                LOGGER.info("parseContenteditable have not parse redirectsURL data");
+                return;
+            }
 
-            Document doc = mGetRenderDoc.getDocumentByHtmlUnit (redirectsURL.toString());
-            LOGGER.info("shortLink doc = " + doc);
+            Element itemElement = elements.get(0);
+            String taobaoCommoditURL = itemElement.getElementsByIndexEquals(0).get(1).attr("href");
+
+            commodit.taobaoCommoditURL = taobaoCommoditURL;
+            LOGGER.info("parseContenteditable commodit = " + taobaoCommoditURL);
+
+//            URL redirectsURL1 = Jsoup.connect(taobaoCommoditURL).followRedirects(true).execute().url();
+            Document doc1 = mGetRenderDoc.getDocument(taobaoCommoditURL);
+            LOGGER.info("parseContenteditable redirectsURL1 = " + doc1);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        LOGGER.info("shortLink = " + shortLink);
+        LOGGER.info("parseContenteditable commodit = " + commodit);
     }
 
-    int i = 0;
     private void saveDB(Commodit commodit) {
 //        commoditMapper.insert (commodit);
-//        LOGGER.info((i++) + " commodit = " + commodit);
     }
 
     public void destory() {
         mGetRenderDoc.destoryWebfolder ();
         mGetRenderDoc = null;
+        mParseIndex = 0;
     }
 }
