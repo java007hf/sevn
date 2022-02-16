@@ -5,41 +5,68 @@ import io.webfolder.cdp.session.Session;
 import io.webfolder.cdp.session.SessionFactory;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.phantomjs.PhantomJSDriver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class GetRenderDoc {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GetRenderDoc.class);
+    private Session mSession;
+    private SessionFactory mFactory;
+    private String mContext;
+    private Launcher mLauncher;
+
+    public void initWebfolder() {
+        LOGGER.info ("===initWebfolder===");
+//        ArrayList<String> command = new ArrayList<String>();
+//        //不显示google 浏览器
+//        command.add("--headless");
+//        command.add("--disable-gpu");
+//        mLauncher = new Launcher();
+//
+//        mFactory = mLauncher.launch(command);
+//        mContext = mFactory.createBrowserContext();
+//        mSession = mFactory.create(mContext);
+    }
+
     public Document getDocument(String url){
-        ArrayList<String> command = new ArrayList<String>();
-        //不显示google 浏览器
-        command.add("--headless");
-        command.add("--disable-gpu");
-        Launcher launcher = new Launcher();
+        LOGGER.info ("===getDocument===");
         Document doc = null;
-
-        try (SessionFactory factory = launcher.launch(command)) {
-            String context = factory.createBrowserContext();
-
-            try (Session session = factory.create(context)) {
-                // 设置要爬的网站链接，必须要有http://或https://
-                session.navigate(url);
-                // 默认timeout是10*1000 ms，也可以像下面这样手动设置
-                session.waitDocumentReady(15 * 1000);
-                // 通过session得到渲染后的html内容
-                String html = session.getContent();
-                System.out.println(html);
-            }// session创建结束
-
-            // 处理浏览器上下文，源码：contexts.remove(browserContextId)
-            // 意思应该是将后台浏览器进程关闭
-            // 我曾经尝试将此举注释，只保留下面的launcher.getProcessManager().kill();
-            // 依然可以关闭后台进程，但是官方给的代码有这句，那就带着吧，或许有其他作用。
-            factory.disposeBrowserContext(context);
-        }// factory创建结束
-
-        // 真正的关闭后台进程
-        launcher.getProcessManager().kill();
+        mSession.navigate(url);
+        // 默认timeout是10*1000 ms，也可以像下面这样手动设置
+        mSession.waitDocumentReady(15 * 1000);
+        LOGGER.info ("===getDocument===1111");
+        // 通过session得到渲染后的html内容
+        String html = mSession.getContent();
+        LOGGER.info ("===getDocument===2222");
+        doc = Jsoup.parse (html);
 
         return doc;
+    }
+
+    public void destoryWebfolder() {
+        LOGGER.info ("===destoryWebfolder===");
+//        mFactory.disposeBrowserContext(mContext);
+//        // 真正的关闭后台进程
+//        mLauncher.getProcessManager().kill();
+    }
+
+
+    public Document getDocumentByHtmlUnit(String url) {
+        LOGGER.info ("===getDocumentByHtmlUnit===");
+        System.setProperty("phantomjs.binary.path", "/home/xxx/software/phantomjs/bin/phantomjs");//这里写你安装的phantomJs文件路径
+        WebDriver webDriver = new PhantomJSDriver ();
+        webDriver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+        webDriver.get("http://www.jianshu.com");
+        WebElement webElement = webDriver.findElement(By.className("recommended-authors"));
+        System.out.println(webElement.getAttribute("outerHTML"));
+
+//        Document document = Jsoup.parse(pageXml);//获取html文档
+        return null;
     }
 }

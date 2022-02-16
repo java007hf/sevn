@@ -14,12 +14,12 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 
 @Component
 public class DTKDateRequest {
     private static final Logger LOGGER = LoggerFactory.getLogger(DTKDateRequest.class);
     private String mToken = "";
+    private GetRenderDoc mGetRenderDoc;
 
 //    天猫超市
 //    private String DTK_List_URL = "https://dtkapi.ffquan.cn/go_getway/proxy/search-v2?platform=1&page=1&px=zh&shop=2&version=2&api_v=1&flow_identifier=normal";
@@ -31,8 +31,10 @@ public class DTKDateRequest {
     @Autowired
     private CommoditMapper commoditMapper;
 
-    public void setToken(String token) {
+    public void init(String token) {
         mToken = token;
+        mGetRenderDoc = new GetRenderDoc();
+        mGetRenderDoc.initWebfolder ();
     }
 
     public void cleanData() {
@@ -114,7 +116,13 @@ public class DTKDateRequest {
             LOGGER.info("shortLink shortLink = " + shortLink);
             LOGGER.info("shortLink redirectsURL = " + redirectsURL);
 
-            Document doc = new GetRenderDoc().getDocument(redirectsURL.toString());
+            //渲染后的数据
+//            Document doc = mGetRenderDoc.getDocument(redirectsURL.toString());
+
+            //静态页面不能获取最终的数据
+//            Document doc = Jsoup.connect(redirectsURL.toString ()).followRedirects(true).execute().parse ();
+
+            Document doc = mGetRenderDoc.getDocumentByHtmlUnit (redirectsURL.toString());
             LOGGER.info("shortLink doc = " + doc);
         } catch (IOException e) {
             e.printStackTrace();
@@ -127,5 +135,10 @@ public class DTKDateRequest {
     private void saveDB(Commodit commodit) {
 //        commoditMapper.insert (commodit);
 //        LOGGER.info((i++) + " commodit = " + commodit);
+    }
+
+    public void destory() {
+        mGetRenderDoc.destoryWebfolder ();
+        mGetRenderDoc = null;
     }
 }
