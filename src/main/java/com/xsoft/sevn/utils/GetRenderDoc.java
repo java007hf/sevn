@@ -38,7 +38,6 @@ public class GetRenderDoc {
         // 通过session得到渲染后的html内容
         String html = mSession.getContent();
         doc = Jsoup.parse (html);
-
         return doc;
     }
 

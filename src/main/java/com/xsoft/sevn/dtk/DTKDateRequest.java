@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 
 @Component
@@ -128,7 +129,6 @@ public class DTKDateRequest {
 
             //渲染后的数据
             Document doc = mGetRenderDoc.getDocument(redirectsURL.toString());
-
             Elements elements = doc.getElementsByClass("item-info-con");
             if (elements.size() <= 0) {
                 LOGGER.info("parseContenteditable have not parse redirectsURL data");
@@ -141,15 +141,72 @@ public class DTKDateRequest {
             commodit.taobaoCommoditURL = taobaoCommoditURL;
             LOGGER.info("parseContenteditable commodit = " + taobaoCommoditURL);
 
-//            URL redirectsURL1 = Jsoup.connect(taobaoCommoditURL).followRedirects(true).execute().url();
-            Document doc1 = mGetRenderDoc.getDocument(taobaoCommoditURL);
-            LOGGER.info("parseContenteditable redirectsURL1 = " + doc1);
+            Document taobaoCommoditURL_first = Jsoup.connect(taobaoCommoditURL).get ();
+            LOGGER.info("parseContenteditable taobaoCommoditURL_first = " + taobaoCommoditURL_first);
+            String scriptData = taobaoCommoditURL_first.getElementsByTag ("script").get (0).data ();
+            int start = scriptData.indexOf ("https://s.click.taobao.com");
+            int end = scriptData.indexOf ("'", start);
+            String real_jump_address = scriptData.substring (start, end).trim ().replaceAll ("amp;","");
+            LOGGER.info("parseContenteditable real_jump_address = " + real_jump_address);
+            try {
+                String daa = getRedirectUrl(real_jump_address, taobaoCommoditURL);
+                LOGGER.info("parseContenteditable daa = " + daa);
+            } catch (Exception e) {
+
+            }
+//            String taobaoCommoditID = getTaobaoCommoditID(taobaoCommoditURL);
+//
+//            //retry once
+//            if (taobaoCommoditID.equals ("")) {
+//                LOGGER.info("parseContenteditable111");
+//                taobaoCommoditID = getTaobaoCommoditID(taobaoCommoditURL);
+//            }
+//            if (taobaoCommoditID.equals ("")) {
+//                LOGGER.info("parseContenteditable222");
+//                taobaoCommoditID = getTaobaoCommoditID(taobaoCommoditURL);
+//            }
+//            if (taobaoCommoditID.equals ("")) {
+//                LOGGER.info("parseContenteditable333");
+//                taobaoCommoditID = getTaobaoCommoditID(taobaoCommoditURL);
+//            }
+//            LOGGER.info("parseContenteditable taobaoCommoditID = " + taobaoCommoditID);
 
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         LOGGER.info("parseContenteditable commodit = " + commodit);
+    }
+
+    private String getRedirectUrl(String path, String refer) throws Exception {
+        HttpURLConnection conn = (HttpURLConnection) new URL (path)
+                .openConnection();
+        conn.setRequestProperty("referer", refer);
+        conn.setRequestProperty("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36");
+        conn.setInstanceFollowRedirects(false);
+        conn.setConnectTimeout(5000);
+
+        System.out.println(conn.getHeaderFields().toString());
+
+        return conn.getHeaderField("Location");
+    }
+
+    private String getTaobaoCommoditID(String taobaoCommoditURL) {
+        Document taobaoCommoditDoc = mGetRenderDoc.getDocument(taobaoCommoditURL);
+//            LOGGER.info("parseContenteditable taobaoCommoditDoc = " + taobaoCommoditDoc);
+
+        Elements linkElements = taobaoCommoditDoc.getElementsByTag ("link");
+
+        String requestInfo = "";
+        for (Element linkElement : linkElements) {
+            String relString = linkElement.attr ("rel");
+            if (relString.equals ("canonical")) {
+                requestInfo = linkElement.attr ("href");
+                break;
+            }
+        }
+
+        return requestInfo;
     }
 
     private void saveDB(Commodit commodit) {
