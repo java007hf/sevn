@@ -10,15 +10,22 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GetJson {
-    public JSONObject getHttpJson(String url, int comefrom){
+    public String getHttpString(String url, HashMap<String, String> headerParams){
         try {
             URL realUrl = new URL(url);
             HttpURLConnection connection = (HttpURLConnection)realUrl.openConnection();
             connection.setRequestProperty("accept", "*/*");
-            connection.setRequestProperty("connection", "Keep-Alive");
-            connection.setRequestProperty("user-agent","Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+            connection.setRequestProperty("user-agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36");
+
+            if (headerParams != null) {
+                for(Map.Entry<String, String> entry : headerParams.entrySet ()) {
+                    connection.setRequestProperty(entry.getKey (), entry.getValue ());
+                }
+            }
             // 建立实际的连接
             connection.connect();
             //请求成功
@@ -32,11 +39,11 @@ public class GetJson {
                     baos.write(buffer, 0, len);
                 }
                 String jsonString=baos.toString();
+
                 baos.close();
                 is.close();
-                //转换成json数据处理
-                JSONObject jsonArray=getJsonString(jsonString,comefrom);
-                return jsonArray;
+
+                return jsonString;
             }
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -44,6 +51,18 @@ public class GetJson {
             ex.printStackTrace();
         }
         return null;
+    }
+
+
+    public JSONObject getHttpJson(String url, int comefrom, HashMap<String, String> headerParams){
+        String str = getHttpString(url, headerParams);
+
+        if (str == null) {
+            return null;
+        }
+        //转换成json数据处理
+        JSONObject jsonArray=getJsonString(str,comefrom);
+        return jsonArray;
     }
 
     public JSONObject getHttpsJson(String url){

@@ -27,6 +27,7 @@ public class Commodit {
     String shortLink; //从大淘客获取的短链
     String redirectsURL; //最终跳转的长链
     String taobaoCommoditURL; //长链里获取的阿里购物链接
+    String tmallDetailUrl; //天猫购物链接
 
     @Override
     public String toString () {
@@ -56,6 +57,7 @@ public class Commodit {
                 ", shortLink='" + shortLink + '\'' +
                 ", redirectsURL='" + redirectsURL + '\'' +
                 ", taobaoCommoditURL='" + taobaoCommoditURL + '\'' +
+                ", tmallDetailUrl='" + tmallDetailUrl + '\'' +
                 '}';
     }
 }

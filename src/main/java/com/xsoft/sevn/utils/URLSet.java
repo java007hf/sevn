@@ -10,7 +10,7 @@ public class URLSet {
      * @param accessToken
      * @return
      */
-    public static String replaceAccessTokenReg(String url, String name, String accessToken) {
+    public static String replaceValueByKey(String url, String name, String accessToken) {
         if (StringUtils.isNotBlank(url) && StringUtils.isNotBlank(accessToken)) {
             url = url.replaceAll("(" + name + "=[^&]*)", name + "=" + accessToken);
         }

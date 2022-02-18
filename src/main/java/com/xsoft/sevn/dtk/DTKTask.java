@@ -28,6 +28,6 @@ public class DTKTask {
             dtkDateRequest.cleanData();
             dtkDateRequest.requestJson(1);
             dtkDateRequest.destory ();
-        }, 0, 10, TimeUnit.MINUTES);
+        }, 0, 60, TimeUnit.MINUTES);
     }
 }
