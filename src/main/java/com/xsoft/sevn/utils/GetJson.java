@@ -3,21 +3,23 @@ package com.xsoft.sevn.utils;
 
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GetJson {
-    public String getHttpString(String url, HashMap<String, String> headerParams){
+    private String getHttpString(String url, HashMap<String, String> headerParams){
+        String result = "";
         try {
             URL realUrl = new URL(url);
             HttpURLConnection connection = (HttpURLConnection)realUrl.openConnection();
             connection.setRequestProperty("accept", "*/*");
+            connection.setRequestProperty("connection", "Keep-Alive");
             connection.setRequestProperty("user-agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36");
             if (headerParams != null) {
                 for(Map.Entry<String, String> entry : headerParams.entrySet ()) {
@@ -29,42 +31,40 @@ public class GetJson {
             //请求成功
             if(connection.getResponseCode()==200){
                 InputStream is=connection.getInputStream();
-                ByteArrayOutputStream baos=new ByteArrayOutputStream();
-                //10MB的缓存
-                byte [] buffer=new byte[10485760];
-                int len=0;
-                while((len=is.read(buffer))!=-1){
-                    baos.write(buffer, 0, len);
+
+                String charset = "UTF-8";
+                Pattern pattern = Pattern.compile("charset=\\S*");
+                Matcher matcher = pattern.matcher(connection.getContentType());
+                if (matcher.find()) {
+                    charset = matcher.group().replace("charset=", "");
                 }
-                String jsonString=baos.toString("UTF-8");
 
-                baos.close();
+//                System.out.println("charset = " + charset);
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is, charset));
+                StringBuilder sb = new StringBuilder();
+                String line;
+
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line + "\n");
+                }
                 is.close();
+                result = sb.toString();
 
-                return jsonString;
+                return result;
             }
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        return null;
+        return result;
     }
 
-
-    public JSONObject getHttpJson(String url, int comefrom, HashMap<String, String> headerParams){
+    public JSONObject getJsonObject(String url, HashMap<String, String> headerParams, int comefrom){
+        JSONObject jo = null;
         String str = getHttpString(url, headerParams);
 
-        if (str == null) {
-            return null;
-        }
-        //转换成json数据处理
-        JSONObject jsonArray=getJsonString(str,comefrom);
-        return jsonArray;
-    }
-
-    public JSONObject getJsonString(String str, int comefrom){
-        JSONObject jo = null;
         if(comefrom==1){
             return new JSONObject(str);
         }else if(comefrom==2){

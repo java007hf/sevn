@@ -29,6 +29,11 @@ public class Commodit {
     String taobaoCommoditURL; //长链里获取的阿里购物链接
     String tmallDetailUrl; //天猫购物链接
 
+    Long tmallPromStartTime; //天猫促销活动开始时间 1645149600000
+    Long tmallPromEndTime; //天猫促销活动结束时间 1645444799000
+    String campaignName; //促销名称 淘客零食大礼包
+    String promPlanMsg; //促销信息 满49.9元,省20元
+
     @Override
     public String toString () {
         return "Commodit{" +
@@ -58,6 +63,10 @@ public class Commodit {
                 ", redirectsURL='" + redirectsURL + '\'' +
                 ", taobaoCommoditURL='" + taobaoCommoditURL + '\'' +
                 ", tmallDetailUrl='" + tmallDetailUrl + '\'' +
+                ", campaignName='" + campaignName + '\'' +
+                ", tmallPromStartTime='" + tmallPromStartTime + '\'' +
+                ", tmallPromEndTime='" + tmallPromEndTime + '\'' +
+                ", promPlanMsg='" + promPlanMsg + '\'' +
                 '}';
     }
 }

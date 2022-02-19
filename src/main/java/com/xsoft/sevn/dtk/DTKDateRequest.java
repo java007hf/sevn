@@ -52,7 +52,7 @@ public class DTKDateRequest {
         String requestURL = URLSet.replaceValueByKey(DTK_List_URL, "page", index + "");
 
         LOGGER.info("requestURL = " + requestURL);
-        JSONObject stock = new GetJson().getHttpJson(requestURL,1, null);
+        JSONObject stock = new GetJson().getJsonObject(requestURL, null, 1);
         process(stock, index);
     }
 
@@ -85,7 +85,7 @@ public class DTKDateRequest {
 
             try {
                 //不设置的话会被服务器限频
-                Thread.sleep (3000);
+                Thread.sleep (10000);
             } catch (InterruptedException e) {
                 e.printStackTrace ();
             }
@@ -124,7 +124,7 @@ public class DTKDateRequest {
         LOGGER.info("parseContenteditable=========");
         String addCommoditID_URL = URLSet.replaceValueByKey(DTK_Item_URL, "gid", commodit.id);
         String addToken_URL = URLSet.replaceValueByKey(addCommoditID_URL, "jaw_uid", mToken);
-        JSONObject stock = new GetJson().getHttpJson(addToken_URL,1, null);
+        JSONObject stock = new GetJson().getJsonObject(addToken_URL, null, 1);
         String shortLink = stock.getJSONObject("data").getString("shortLink");
 
         commodit.dtkCommoditURL = addCommoditID_URL;
@@ -147,7 +147,7 @@ public class DTKDateRequest {
             commodit.tmallDetailUrl = tmallDetailUrl;
             LOGGER.info("parseContenteditable tmallDetailUrl = " + tmallDetailUrl);
 
-            getItemDetail (realCommoditId);
+            getItemDetail (realCommoditId, commodit);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -184,7 +184,7 @@ public class DTKDateRequest {
 
     private String getRealCommoditId(String taobaoCommoditURL) throws Exception {
         Document taobaoCommoditURL_first = Jsoup.connect(taobaoCommoditURL).get ();
-        LOGGER.info("parseContenteditable taobaoCommoditURL_first = " + taobaoCommoditURL_first);
+//        LOGGER.info("parseContenteditable taobaoCommoditURL_first = " + taobaoCommoditURL_first);
         String scriptData = taobaoCommoditURL_first.getElementsByTag ("script").get (0).data ();
         int start = scriptData.indexOf ("https://s.click.taobao.com");
         int end = scriptData.indexOf ("'", start);
@@ -209,24 +209,24 @@ public class DTKDateRequest {
     }
 
     private static final String Taobao_Item_Detail_URL = "https://mdskip.taobao.com/core/initItemDetail.htm?isUseInventoryCenter=false&cartEnable=true&service3C=false&isApparel=false&isSecKill=false&tmallBuySupport=true&isAreaSell=true&tryBeforeBuy=false&offlineShop=false&itemId=616197497197&showShopProm=false&isPurchaseMallPage=false&itemGmtModified=1645148276000&isRegionLevel=true&household=false&sellerPreview=false&queryMemberRight=true&addressLevel=3&isForbidBuyItem=false&callback=setMdskip&timestamp=1645153861638&isg=eBOebLLrvzZxCI6ZBO5Zourza77tnIOb4sPzaNbMiInca6TP6FNexNCntjO9JdtxgtC3QetyzV7WZRLHRnsR2xDDB_5LaCPKFxvO.&isg2=BCoqifNAPOreyojuO7PmbTDpe5bMm671K9OALbTi0H0I58qhnCv7BVlWchN7FyaN&ref=https%3A%2F%2Fs.click.taobao.com%2Ft%3Fe%3Dm%253D2%2526s%253DjSIb%252BVy0WzFw4vFB6t2Z2ueEDrYVVa64K7Vc7tFgwiHjf2vlNIV67jGjtYXttE9FUQTSx8a5hQfY9SXzJMHQ52wRVU4dSzYt6ct%252Bc0Y5Z63ESIe%252BlrdZwQ6KhLeHSnTd9CgRSquDwp%252FfthUCVthSDQnzw7yGd%252BdrzRD18rVfQC6EuM7wkVK6rtkYvQZuIwx3oGeIQL4Fi9E0dSsB%252BMyCC3Hks1YB%252F9HKAtuQeASk5p%252F%252FtEaAB6jt1zZh%252F6SdwofmOSqR9HCIYBsK%252Flmy5qWuVCDXTT16t7f8xgxdTc00KD8%253D%26pvid%3D23116944%26af%3D1%26union_lens%3DlensId%253AOPT%25401645149205%25402107b30b_4779_17f0a88b57b_bf61%254001%253Brecoveryid%253A201_33.51.64.126_12209961_1645149205568%253Bprepvid%253A201_33.51.64.126_12209961_1645149205568";
-    private String getItemDetail(String itemID) {
+    private void getItemDetail(String itemID, Commodit commodit) {
         String currentItemDetailURL = URLSet.replaceValueByKey (Taobao_Item_Detail_URL, "itemId", itemID);
 
         HashMap<String, String> headerParams = new HashMap<String, String> ();
         headerParams.put ("Host", "mdskip.taobao.com");
         headerParams.put ("Cookie", "sgcookie=E100bU3EM8DQzRZi2XedyKiZNnMcfeRhffBCCcAiRrBxM%2FtWKn01JbmN%2FoRkpygB0Yse86YAenBUi8Z5ctH%2BTWiLjfGALQ1awKUo8Y%2B%2FDQSgFYPluZyB9T%2FdOY%2BBUPwqnpDV; x5sec=7b22617365727665723b32223a223437663837303835386566653635663030356638356365373661356631653738434c7970764a4147454962496b344c436f4b69474c4443736c737a7a2f2f2f2f2f2f38424f674a724d513d3d227d");
         headerParams.put ("referer", "https://detail.tmall.com/");
-        String infoStr = new GetJson().getHttpString(currentItemDetailURL, headerParams);
-        LOGGER.info("getItemDetail 11111 = " + infoStr);
+        JSONObject infoJSON = new GetJson().getJsonObject(currentItemDetailURL, headerParams, 2);
+//        LOGGER.info("getItemDetail 11111 = " + infoJSON);
 
-        try {
-            LOGGER.info("getItemDetail 11111 = ");
-            String str = new  String(infoStr.getBytes("GBK"),"UTF-8") ;
-            LOGGER.info("getItemDetail str = " + str);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace ();
+        JSONArray tmallShopPromJSONArray = infoJSON.getJSONObject("defaultModel").getJSONObject("itemPriceResultDO").getJSONArray("tmallShopProm");
+        if (tmallShopPromJSONArray.length() != 0) {
+            JSONObject tmallShopPromJSON = tmallShopPromJSONArray.getJSONObject(0);
+            commodit.campaignName = tmallShopPromJSON.getString("campaignName");
+            commodit.tmallPromStartTime = Long.parseLong(tmallShopPromJSON.getString("startTime"));
+            commodit.tmallPromEndTime = Long.parseLong(tmallShopPromJSON.getString("endTime"));
+            commodit.promPlanMsg = tmallShopPromJSON.getJSONArray("promPlanMsg").toString();
         }
-        return infoStr;
     }
 
     private void saveDB(Commodit commodit) {
