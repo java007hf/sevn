@@ -3,7 +3,6 @@ package com.xsoft.sevn.utils;
 
 import org.json.JSONObject;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +19,6 @@ public class GetJson {
             HttpURLConnection connection = (HttpURLConnection)realUrl.openConnection();
             connection.setRequestProperty("accept", "*/*");
             connection.setRequestProperty("user-agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36");
-
             if (headerParams != null) {
                 for(Map.Entry<String, String> entry : headerParams.entrySet ()) {
                     connection.setRequestProperty(entry.getKey (), entry.getValue ());
@@ -38,7 +36,7 @@ public class GetJson {
                 while((len=is.read(buffer))!=-1){
                     baos.write(buffer, 0, len);
                 }
-                String jsonString=baos.toString();
+                String jsonString=baos.toString("UTF-8");
 
                 baos.close();
                 is.close();
@@ -63,36 +61,6 @@ public class GetJson {
         //转换成json数据处理
         JSONObject jsonArray=getJsonString(str,comefrom);
         return jsonArray;
-    }
-
-    public JSONObject getHttpsJson(String url){
-        try {
-            URL realUrl = new URL(url);
-            HttpsURLConnection httpsConn = (HttpsURLConnection)realUrl.openConnection();
-            httpsConn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
-            httpsConn.setRequestProperty("connection", "Keep-Alive");
-            httpsConn.setRequestProperty("user-agent","Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.62 Safari/537.36");
-            httpsConn.setRequestProperty("Accept-Charset","utf-8");
-            httpsConn.setRequestProperty("contentType", "utf-8");
-            httpsConn.connect();
-            if(httpsConn.getResponseCode()==200){
-                InputStream is = httpsConn.getInputStream();
-                ByteArrayOutputStream baos=new ByteArrayOutputStream();
-                //10MB的缓存
-                byte [] buffer=new byte[10485760];
-                int len=0;
-                while((len=is.read(buffer))!=-1){
-                    baos.write(buffer, 0, len);
-                }
-                String jsonString=baos.toString("utf-8");
-                baos.close();
-                is.close();
-                return new JSONObject(jsonString);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return  null;
     }
 
     public JSONObject getJsonString(String str, int comefrom){

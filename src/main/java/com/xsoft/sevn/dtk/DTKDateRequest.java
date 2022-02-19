@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -216,7 +217,15 @@ public class DTKDateRequest {
         headerParams.put ("Cookie", "sgcookie=E100bU3EM8DQzRZi2XedyKiZNnMcfeRhffBCCcAiRrBxM%2FtWKn01JbmN%2FoRkpygB0Yse86YAenBUi8Z5ctH%2BTWiLjfGALQ1awKUo8Y%2B%2FDQSgFYPluZyB9T%2FdOY%2BBUPwqnpDV; x5sec=7b22617365727665723b32223a223437663837303835386566653635663030356638356365373661356631653738434c7970764a4147454962496b344c436f4b69474c4443736c737a7a2f2f2f2f2f2f38424f674a724d513d3d227d");
         headerParams.put ("referer", "https://detail.tmall.com/");
         String infoStr = new GetJson().getHttpString(currentItemDetailURL, headerParams);
-        LOGGER.info("getItemDetail stock = " + infoStr);
+        LOGGER.info("getItemDetail 11111 = " + infoStr);
+
+        try {
+            LOGGER.info("getItemDetail 11111 = ");
+            String str = new  String(infoStr.getBytes("GBK"),"UTF-8") ;
+            LOGGER.info("getItemDetail str = " + str);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace ();
+        }
         return infoStr;
     }
 
