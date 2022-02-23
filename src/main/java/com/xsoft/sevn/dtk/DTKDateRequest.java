@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -22,7 +21,10 @@ import java.util.HashMap;
 @Component
 public class DTKDateRequest {
     private static final Logger LOGGER = LoggerFactory.getLogger(DTKDateRequest.class);
-    private String mToken = "";
+    private String mDTKToken = "";
+    private String mTaobao_sgcookie = "";
+    private String mTaobao_x5sec = "";
+
     private GetRenderDoc mGetRenderDoc;
 
 //    大淘客天猫超市
@@ -30,22 +32,25 @@ public class DTKDateRequest {
     //大淘客天猫
     private String DTK_List_URL = "https://dtkapi.ffquan.cn/go_getway/proxy/search-v2?platform=1&page=1&px=zh&tmall=1&version=2&api_v=1&flow_identifier=normal";
     //大淘客推荐页面
-    private static final String DTK_Item_URL = "https://dtkapi.ffquan.cn/taobaoapi/tpl-tpwd?gid=37259812&location=1&referer=&need_fav=-1&jaw_uid=K8dB7HRsOIHPyaYjkwoLGTSH0_zKZnl6P6rbRgsJZxq13Iy66y1V5bjLitRpBkLsNs-X9PJy3z-GNIyvofpw1A";
+    private static final String DTK_Item_URL = "https://dtkapi.ffquan.cn/taobaoapi/tpl-tpwd?gid=37337736&location=1&referer=&need_fav=-1&jaw_uid=K8dB7HRsOIHPyaYjkwoLGTSH0_zKZnl6P6rbRgsJZxrjed_-9xhV9Q-37g7d4kbl2M9sRC-GN4tc_MC08_iANw";
     private static final String Tmall_Detail_URL = "https://detail.tmall.com/item.htm?id=573013177383";
     private int mParseIndex = 0;
 
     @Autowired
     private CommoditMapper commoditMapper;
 
-    public void init(String token) {
-        mToken = token;
+    public void init(String token, String sg, String x5) {
+        mDTKToken = token;
+        mTaobao_sgcookie = sg;
+        mTaobao_x5sec = x5;
+
         mGetRenderDoc = new GetRenderDoc();
         mGetRenderDoc.initWebfolder ();
         mParseIndex = 0;
     }
 
     public void cleanData() {
-//        commoditMapper.cleanData();
+        commoditMapper.cleanData();
     }
 
     public void requestJson(int index) {
@@ -123,16 +128,24 @@ public class DTKDateRequest {
     private void parseContenteditable(Commodit commodit) {
         LOGGER.info("parseContenteditable=========");
         String addCommoditID_URL = URLSet.replaceValueByKey(DTK_Item_URL, "gid", commodit.id);
-        String addToken_URL = URLSet.replaceValueByKey(addCommoditID_URL, "jaw_uid", mToken);
+        String addToken_URL = URLSet.replaceValueByKey(addCommoditID_URL, "jaw_uid", mDTKToken);
         JSONObject stock = new GetJson().getJsonObject(addToken_URL, null, 1);
-        String shortLink = stock.getJSONObject("data").getString("shortLink");
-
-        commodit.dtkCommoditURL = addCommoditID_URL;
-        commodit.shortLink = shortLink;
-        LOGGER.info("parseContenteditable shortLink = " + shortLink);
 
         try {
-            String redirectsURL = getRedirects(shortLink);
+            JSONObject dataJSON = stock.getJSONObject("data");
+            String shortLink = stock.getJSONObject("data").getString("shortLink");
+            commodit.dtkCommoditURL = addCommoditID_URL;
+            commodit.shortLink = shortLink;
+            LOGGER.info("parseContenteditable shortLink = " + shortLink);
+        } catch (Exception e) {
+            e.printStackTrace ();
+            LOGGER.info("parseContenteditable not data");
+            return;
+        }
+
+
+        try {
+            String redirectsURL = getRedirects(commodit.shortLink);
             commodit.redirectsURL = redirectsURL;
             LOGGER.info("parseContenteditable redirectsURL = " + redirectsURL);
 
@@ -208,13 +221,20 @@ public class DTKDateRequest {
         return realCommoditId;
     }
 
+    public void setX5sec(String x5) {
+        mTaobao_x5sec = x5;
+    }
+
     private static final String Taobao_Item_Detail_URL = "https://mdskip.taobao.com/core/initItemDetail.htm?isUseInventoryCenter=false&cartEnable=true&service3C=false&isApparel=false&isSecKill=false&tmallBuySupport=true&isAreaSell=true&tryBeforeBuy=false&offlineShop=false&itemId=616197497197&showShopProm=false&isPurchaseMallPage=false&itemGmtModified=1645148276000&isRegionLevel=true&household=false&sellerPreview=false&queryMemberRight=true&addressLevel=3&isForbidBuyItem=false&callback=setMdskip&timestamp=1645153861638&isg=eBOebLLrvzZxCI6ZBO5Zourza77tnIOb4sPzaNbMiInca6TP6FNexNCntjO9JdtxgtC3QetyzV7WZRLHRnsR2xDDB_5LaCPKFxvO.&isg2=BCoqifNAPOreyojuO7PmbTDpe5bMm671K9OALbTi0H0I58qhnCv7BVlWchN7FyaN&ref=https%3A%2F%2Fs.click.taobao.com%2Ft%3Fe%3Dm%253D2%2526s%253DjSIb%252BVy0WzFw4vFB6t2Z2ueEDrYVVa64K7Vc7tFgwiHjf2vlNIV67jGjtYXttE9FUQTSx8a5hQfY9SXzJMHQ52wRVU4dSzYt6ct%252Bc0Y5Z63ESIe%252BlrdZwQ6KhLeHSnTd9CgRSquDwp%252FfthUCVthSDQnzw7yGd%252BdrzRD18rVfQC6EuM7wkVK6rtkYvQZuIwx3oGeIQL4Fi9E0dSsB%252BMyCC3Hks1YB%252F9HKAtuQeASk5p%252F%252FtEaAB6jt1zZh%252F6SdwofmOSqR9HCIYBsK%252Flmy5qWuVCDXTT16t7f8xgxdTc00KD8%253D%26pvid%3D23116944%26af%3D1%26union_lens%3DlensId%253AOPT%25401645149205%25402107b30b_4779_17f0a88b57b_bf61%254001%253Brecoveryid%253A201_33.51.64.126_12209961_1645149205568%253Bprepvid%253A201_33.51.64.126_12209961_1645149205568";
+    private static final String Taobao_cookie = "sgcookie=E100bU3EM8DQzRZi2XedyKiZNnMcfeRhffBCCcAiRrBxM%2FtWKn01JbmN%2FoRkpygB0Yse86YAenBUi8Z5ctH%2BTWiLjfGALQ1awKUo8Y%2B%2FDQSgFYPluZyB9T%2FdOY%2BBUPwqnpDV; x5sec=7b22617365727665723b32223a2264316463623537613366396561303330376638316234613730643766613663314350484131354147454b762b693757496b4d58536d774561436a6b774d7a6b784f5455774f7a4977724a624d382f2f2f2f2f2f2f41546f43617a453d227d";
     private void getItemDetail(String itemID, Commodit commodit) {
         String currentItemDetailURL = URLSet.replaceValueByKey (Taobao_Item_Detail_URL, "itemId", itemID);
+        String cookie_add_sg = URLSet.replaceValueByKey (Taobao_cookie, "sgcookie", mTaobao_sgcookie);
+        String cookie_add_x5 = URLSet.replaceValueByKey (cookie_add_sg, "x5sec", mTaobao_x5sec);
 
         HashMap<String, String> headerParams = new HashMap<String, String> ();
         headerParams.put ("Host", "mdskip.taobao.com");
-        headerParams.put ("Cookie", "sgcookie=E100bU3EM8DQzRZi2XedyKiZNnMcfeRhffBCCcAiRrBxM%2FtWKn01JbmN%2FoRkpygB0Yse86YAenBUi8Z5ctH%2BTWiLjfGALQ1awKUo8Y%2B%2FDQSgFYPluZyB9T%2FdOY%2BBUPwqnpDV; x5sec=7b22617365727665723b32223a223437663837303835386566653635663030356638356365373661356631653738434c7970764a4147454962496b344c436f4b69474c4443736c737a7a2f2f2f2f2f2f38424f674a724d513d3d227d");
+        headerParams.put ("Cookie", cookie_add_x5);
         headerParams.put ("referer", "https://detail.tmall.com/");
         JSONObject infoJSON = new GetJson().getJsonObject(currentItemDetailURL, headerParams, 2);
 //        LOGGER.info("getItemDetail 11111 = " + infoJSON);
@@ -230,7 +250,7 @@ public class DTKDateRequest {
     }
 
     private void saveDB(Commodit commodit) {
-//        commoditMapper.insert (commodit);
+        commoditMapper.insert (commodit);
     }
 
     public void destory() {

@@ -24,7 +24,9 @@ public class DTKTask {
             Thread.currentThread().setName("DTKCrawlerThread");
 
             LOGGER.info ("----crawl begin----");
-            dtkDateRequest.init (Token);
+            dtkDateRequest.init (Token,
+                    "E1006tDFGxtUWaW5lGeul1uOD%2FW4CYAM60%2BCG9q3lm1UXQL7OCx0FsH5w5p12SYe3akXs%2Fp2MK7P5mP2AspiCvLYFv3jNiyrp0PzH%2Fv12IGnNtfm%2BBcsK%2FNS1EeQtzwyLoXd",
+                    "7b22617365727665723b32223a223930363930616639393732336532366631383761366534633932643365313565434e505231354147454a4f386749336b396247526353694367414977724a624d382f2f2f2f2f2f2f41546f43617a453d227d");
             dtkDateRequest.cleanData();
             dtkDateRequest.requestJson(1);
             dtkDateRequest.destory ();
