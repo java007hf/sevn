@@ -17,6 +17,11 @@ public class GetRenderDoc {
     private String mContext;
     private Launcher mLauncher;
 
+    public void restart() {
+        destoryWebfolder();
+        initWebfolder();
+    }
+
     public void initWebfolder() {
         LOGGER.info ("===initWebfolder===");
         ArrayList<String> command = new ArrayList<String>();

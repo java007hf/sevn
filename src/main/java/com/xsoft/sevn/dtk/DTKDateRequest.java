@@ -4,6 +4,7 @@ import com.xsoft.sevn.utils.GetJson;
 import com.xsoft.sevn.utils.GetRenderDoc;
 import com.xsoft.sevn.utils.URLSet;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -38,11 +39,13 @@ public class DTKDateRequest {
 
     @Autowired
     private CommoditMapper commoditMapper;
+    private DTKUserInfo mDTKUserInfo;
 
-    public void init(String token, String sg, String x5) {
-        mDTKToken = token;
-        mTaobao_sgcookie = sg;
-        mTaobao_x5sec = x5;
+    public void init(DTKUserInfo userInfo) {
+        mDTKUserInfo = userInfo;
+        mDTKToken = userInfo.getDTKToken ();
+        mTaobao_sgcookie = userInfo.getTaobao_sgcookie ();
+        mTaobao_x5sec = userInfo.getTaobao_x5sec ();
 
         mGetRenderDoc = new GetRenderDoc();
         mGetRenderDoc.initWebfolder ();
@@ -169,15 +172,22 @@ public class DTKDateRequest {
     }
 
     private String getTaobaoCommoditTempURL(String redirectsURL) {
-        Document doc = mGetRenderDoc.getDocument(redirectsURL);
-        Elements elements = doc.getElementsByClass("item-info-con");
-        if (elements.size() <= 0) {
-            LOGGER.info("parseContenteditable have not parse redirectsURL data");
-            return "";
-        }
+        String taobaoCommoditURL = "";
+        try {
+            Document doc = mGetRenderDoc.getDocument(redirectsURL);
+            Elements elements = doc.getElementsByClass("item-info-con");
+            if (elements.size() <= 0) {
+                LOGGER.info("parseContenteditable have not parse redirectsURL data");
+                return "";
+            }
 
-        Element itemElement = elements.get(0);
-        String taobaoCommoditURL = itemElement.getElementsByIndexEquals(0).get(1).attr("href");
+            Element itemElement = elements.get(0);
+            taobaoCommoditURL = itemElement.getElementsByIndexEquals(0).get(1).attr("href");
+        } catch (Exception e) {
+            e.printStackTrace ();
+            LOGGER.error ("getTaobaoCommoditTempURL mGetRenderDoc.restart()");
+            mGetRenderDoc.restart();
+        }
 
         return taobaoCommoditURL;
     }
@@ -236,16 +246,23 @@ public class DTKDateRequest {
         headerParams.put ("Host", "mdskip.taobao.com");
         headerParams.put ("Cookie", cookie_add_x5);
         headerParams.put ("referer", "https://detail.tmall.com/");
-        JSONObject infoJSON = new GetJson().getJsonObject(currentItemDetailURL, headerParams, 2);
+
+        try {
+            JSONObject infoJSON = new GetJson().getJsonObject(currentItemDetailURL, headerParams, 2);
 //        LOGGER.info("getItemDetail 11111 = " + infoJSON);
 
-        JSONArray tmallShopPromJSONArray = infoJSON.getJSONObject("defaultModel").getJSONObject("itemPriceResultDO").getJSONArray("tmallShopProm");
-        if (tmallShopPromJSONArray.length() != 0) {
-            JSONObject tmallShopPromJSON = tmallShopPromJSONArray.getJSONObject(0);
-            commodit.campaignName = tmallShopPromJSON.getString("campaignName");
-            commodit.tmallPromStartTime = Long.parseLong(tmallShopPromJSON.getString("startTime"));
-            commodit.tmallPromEndTime = Long.parseLong(tmallShopPromJSON.getString("endTime"));
-            commodit.promPlanMsg = tmallShopPromJSON.getJSONArray("promPlanMsg").toString();
+            JSONArray tmallShopPromJSONArray = infoJSON.getJSONObject("defaultModel").getJSONObject("itemPriceResultDO").getJSONArray("tmallShopProm");
+            if (tmallShopPromJSONArray.length() != 0) {
+                JSONObject tmallShopPromJSON = tmallShopPromJSONArray.getJSONObject(0);
+                commodit.campaignName = tmallShopPromJSON.getString("campaignName");
+                commodit.tmallPromStartTime = Long.parseLong(tmallShopPromJSON.getString("startTime"));
+                commodit.tmallPromEndTime = Long.parseLong(tmallShopPromJSON.getString("endTime"));
+                commodit.promPlanMsg = tmallShopPromJSON.getJSONArray("promPlanMsg").toString();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace ();
+            //增加阻塞机制
+            mDTKUserInfo.needNewX5sec ();
         }
     }
 
