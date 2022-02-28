@@ -259,17 +259,21 @@ public class DTKDateRequest {
     private static final String Taobao_cookie = "sgcookie=E100bU3EM8DQzRZi2XedyKiZNnMcfeRhffBCCcAiRrBxM%2FtWKn01JbmN%2FoRkpygB0Yse86YAenBUi8Z5ctH%2BTWiLjfGALQ1awKUo8Y%2B%2FDQSgFYPluZyB9T%2FdOY%2BBUPwqnpDV; x5sec=7b22617365727665723b32223a2264316463623537613366396561303330376638316234613730643766613663314350484131354147454b762b693757496b4d58536d774561436a6b774d7a6b784f5455774f7a4977724a624d382f2f2f2f2f2f2f41546f43617a453d227d";
     private void getItemDetail(String itemID, Commodit commodit) {
         String currentItemDetailURL = URLSet.replaceValueByKey (Taobao_Item_Detail_URL, "itemId", itemID);
-        String cookie_add_sg = URLSet.replaceValueByKey (Taobao_cookie, "sgcookie", mDTKUserInfo.getTaobao_sgcookie());
-        String cookie_add_x5 = URLSet.replaceValueByKey (cookie_add_sg, "x5sec", mDTKUserInfo.getTaobao_x5sec());
+        String cookie = "sgcookie="+mDTKUserInfo.getTaobao_sgcookie()+"; x5sec="+mDTKUserInfo.getTaobao_x5sec();
+//        String cookie_add_sg = URLSet.replaceValueByKey (Taobao_cookie, "sgcookie", mDTKUserInfo.getTaobao_sgcookie());
+//        String cookie_add_x5 = URLSet.replaceValueByKey (cookie_add_sg, "x5sec", mDTKUserInfo.getTaobao_x5sec());
 
         HashMap<String, String> headerParams = new HashMap<String, String> ();
         headerParams.put ("Host", "mdskip.taobao.com");
-        headerParams.put ("Cookie", cookie_add_x5);
+        headerParams.put ("Cookie", cookie);
         headerParams.put ("referer", "https://detail.tmall.com/");
 
         try {
+            LOGGER.info("getItemDetail currentItemDetailURL = " + currentItemDetailURL);
+            LOGGER.info("getItemDetail headerParams = " + headerParams);
+
             JSONObject infoJSON = new GetJson().getJsonObject(currentItemDetailURL, headerParams, 2);
-//        LOGGER.info("getItemDetail 11111 = " + infoJSON);
+            LOGGER.info("getItemDetail 11111 = " + infoJSON);
 
             JSONArray tmallShopPromJSONArray = infoJSON.getJSONObject("defaultModel").getJSONObject("itemPriceResultDO").getJSONArray("tmallShopProm");
             if (tmallShopPromJSONArray.length() != 0) {
