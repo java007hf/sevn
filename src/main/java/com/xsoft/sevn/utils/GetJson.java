@@ -64,7 +64,7 @@ public class GetJson {
     public JSONObject getJsonObject(String url, HashMap<String, String> headerParams, int comefrom){
         JSONObject jo = null;
         String str = getHttpString(url, headerParams);
-
+        System.out.println (str);
         if(comefrom==1){
             return new JSONObject(str);
         }else if(comefrom==2){
