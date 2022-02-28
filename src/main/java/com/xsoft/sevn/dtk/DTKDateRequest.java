@@ -17,7 +17,10 @@ import org.springframework.stereotype.Component;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 
 @Component
 public class DTKDateRequest {
@@ -46,10 +49,21 @@ public class DTKDateRequest {
     }
 
     public void cleanData() {
-//        commoditMapper.cleanData();
+        LOGGER.info("=====cleanData====");
+        commoditMapper.cleanData();
     }
 
-    public void requestJson(int index) {
+    public void requestJson() {
+        String requestURL = URLSet.replaceValueByKey(DTK_List_URL, "page", 1 + "");
+        JSONObject stock = new GetJson().getJsonObject(requestURL, null, 1);
+        int pages = getPageNum(stock);
+
+        for (int i=1; i<=pages; i++) {
+            requestJsonByPage(i);
+        }
+    }
+
+    public void requestJsonByPage(int index) {
         String requestURL = URLSet.replaceValueByKey(DTK_List_URL, "page", index + "");
 
         LOGGER.info("requestURL = " + requestURL);
@@ -57,32 +71,46 @@ public class DTKDateRequest {
         process(stock, index);
     }
 
-    private void process(JSONObject stock, int currentPage) {
+    private int getPageNum(JSONObject stock) {
         JSONObject searchData = stock.getJSONObject("data").getJSONObject("search");
         int totalSize = searchData.getInt("total");
         int pageSize = totalSize/100;
         if (totalSize%100 != 0) pageSize++;
 
+        return pageSize;
+    }
+
+    private void process(JSONObject stock, int currentPage) {
+        JSONObject searchData = stock.getJSONObject("data").getJSONObject("search");
         JSONArray listArray = searchData.getJSONArray("list");
 
-        LOGGER.info("totalSize = " + totalSize);
-        LOGGER.info("pageSize = " + pageSize);
         LOGGER.info("currentPage = " + currentPage);
 
         for (int i=0; i<listArray.length (); i++) {
             mParseIndex++;
             LOGGER.info("=====current Index==== " + mParseIndex);
             JSONObject commoditJSON = listArray.getJSONObject (i);
-
             Commodit commodit = new Commodit ();
 
             //获取商品JSON数据
             parseCommoditInfo(commodit, commoditJSON);
+            //根据商品id 获取推荐的短连接
+//            parseContenteditable(commodit);
 
+            saveCommodit(commodit);
+        }
+    }
+
+    public void continueGetData() {
+        LOGGER.info("=====continueGetData====");
+        List<Commodit> commoditList = commoditMapper.queryAllNoCommoditList();
+        LOGGER.info("=====continueGetData====" + commoditList.size());
+
+        for(Commodit commodit : commoditList) {
             //根据商品id 获取推荐的短连接
             parseContenteditable(commodit);
-
-            saveDB(commodit);
+            addPromTime(commodit);
+            updateCommodit(commodit);
 
             try {
                 //不设置的话会被服务器限频
@@ -91,10 +119,13 @@ public class DTKDateRequest {
                 e.printStackTrace ();
             }
         }
+    }
 
-        if (pageSize > currentPage) {
-            requestJson(currentPage+1);
-        }
+    private void addPromTime(Commodit commodit) {
+        LocalDateTime myDateObj = LocalDateTime.now();
+        DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+        String formattedDate = myDateObj.format(myFormatObj);
+        commodit.addPromTime = formattedDate;
     }
 
     private void parseCommoditInfo(Commodit commodit, JSONObject commoditJSON) {
@@ -256,8 +287,20 @@ public class DTKDateRequest {
         }
     }
 
-    private void saveDB(Commodit commodit) {
-//        commoditMapper.insert (commodit);
+    private void saveCommodit(Commodit commodit) {
+        try {
+            commoditMapper.insert (commodit);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateCommodit(Commodit commodit) {
+        try {
+            commoditMapper.updateCommodit(commodit);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void destory() {

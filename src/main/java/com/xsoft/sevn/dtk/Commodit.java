@@ -34,6 +34,8 @@ public class Commodit {
     String campaignName; //促销名称 淘客零食大礼包
     String promPlanMsg; //促销信息 满49.9元,省20元
 
+    String addPromTime; //获取活动的时间 2022-02-14 21:31:02
+
     @Override
     public String toString () {
         return "Commodit{" +
@@ -67,6 +69,7 @@ public class Commodit {
                 ", tmallPromStartTime='" + tmallPromStartTime + '\'' +
                 ", tmallPromEndTime='" + tmallPromEndTime + '\'' +
                 ", promPlanMsg='" + promPlanMsg + '\'' +
+                ", addPromTime='" + addPromTime + '\'' +
                 '}';
     }
 }

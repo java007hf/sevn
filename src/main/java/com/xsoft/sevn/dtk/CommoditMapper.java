@@ -1,8 +1,8 @@
 package com.xsoft.sevn.dtk;
 
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.*;
+
+import java.util.List;
 
 @Mapper
 public interface CommoditMapper {
@@ -20,4 +20,14 @@ public interface CommoditMapper {
 
     @Delete ("DELETE FROM commodit_list")
     int cleanData();
+
+    @Update("UPDATE commodit_list SET dtkCommoditURL=#{dtkCommoditURL}, shortLink=#{shortLink}, redirectsURL=#{redirectsURL}, taobaoCommoditURL=#{taobaoCommoditURL}, tmallDetailUrl=#{tmallDetailUrl}, tmallPromStartTime=#{tmallPromStartTime}, tmallPromEndTime=#{tmallPromEndTime},campaignName=#{campaignName}, promPlanMsg=#{promPlanMsg}, addPromTime=#{addPromTime} WHERE id=#{id}")
+    int updateCommodit(Commodit commodit);
+
+    @Results({
+            @Result(property = "id", column = "id"),
+            @Result(property = "brand_name", column = "brand_name")
+    })
+    @Select("SELECT * FROM commodit_list WHERE addPromTime is null")
+    List<Commodit> queryAllNoCommoditList();
 }
